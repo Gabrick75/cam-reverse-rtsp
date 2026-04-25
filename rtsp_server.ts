@@ -260,7 +260,12 @@ export const serveRtsp = (port: number) => {
             const rtpChan  = chanMatch ? parseInt(chanMatch[1]) : 0;
             const rtcpChan = chanMatch ? parseInt(chanMatch[2]) : 1;
 
-            const sessionId = Math.random().toString(36).slice(2, 12);
+            // Reuse existing session for this socket if it exists (NVR may
+            // send multiple SETUP for different tracks on same connection)
+            const existingSid = headers["session"]?.split(";")[0].trim();
+            const sessionId = existingSid && rtspSessions.has(existingSid)
+              ? existingSid
+              : Math.random().toString(36).slice(2, 12);
             activeSessId = sessionId;
 
             rtspSessions.set(sessionId, {
@@ -285,12 +290,28 @@ export const serveRtsp = (port: number) => {
           }
 
           case "PLAY": {
-            const sid = headers["session"] ?? activeSessId ?? "";
+            // Session header may include timeout suffix e.g. "g76g2gwwod;timeout=60"
+            const sid = (headers["session"]?.split(";")[0].trim()) ?? activeSessId ?? "";
             const sess = rtspSessions.get(sid);
             if (sess) {
               sess.playing = true;
-              logger.info(`RTSP PLAY from ${clientIp}`);
+              logger.info(`RTSP PLAY from ${clientIp} session=${sid}`);
+            } else {
+              logger.debug(`RTSP PLAY: session ${sid} not found, known: ${[...rtspSessions.keys()].join(",")}`);
             }
+            socket.write(
+              `RTSP/1.0 200 OK\r\n` +
+              `CSeq: ${cseq}\r\n` +
+              `Session: ${sid}\r\n` +
+              `Range: npt=0.000-\r\n\r\n`,
+            );
+            break;
+          }
+
+          case "GET_PARAMETER":
+          case "SET_PARAMETER": {
+            // LIVE555 sends GET_PARAMETER as keepalive — must respond 200
+            const sid = (headers["session"]?.split(";")[0].trim()) ?? activeSessId ?? "";
             socket.write(
               `RTSP/1.0 200 OK\r\n` +
               `CSeq: ${cseq}\r\n` +
@@ -300,7 +321,7 @@ export const serveRtsp = (port: number) => {
           }
 
           case "TEARDOWN": {
-            const sid = headers["session"] ?? activeSessId ?? "";
+            const sid = (headers["session"]?.split(";")[0].trim()) ?? activeSessId ?? "";
             rtspSessions.delete(sid);
             logger.info(`RTSP TEARDOWN from ${clientIp}`);
             socket.write(
