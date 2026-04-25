@@ -1,6 +1,6 @@
 Re-implementation of the "iLnk"/"iLnkP2P"/"PPPP" protocol used on some cheap (\<$5) IP cameras (sometimes branded as 'X5' or 'A9').
 
-* Bought [this X5](https://www.aliexpress.com/item/1005006287788979.html) and [this A9](https://www.aliexpress.com/item/1005006117593880.html).
+* Bought [this X5](https://www.aliexpress.com/item/1005006287788979.html) and [this A9](https://www.aliexpress.com/item/1005006117593880.html)and this fork tested with [this A7 1080p](http://pt.aliexpress.com/item/1005011735155071.html).
 * App is [YsxLite](https://play.google.com/store/apps/details?id=com.ysxlite.cam&hl=en&gl=US)
 
 
@@ -13,6 +13,110 @@ Per pictures of the [X5](https://github.com/DavidVentura/cam-reverse/blob/master
 - Rotation / mirroring of video streams
 - Friendly names for cameras
 - Ability to configure "blank" cameras with Wifi settings
+- **[Fork] Native RTSP server — connect directly to any NVR or VLC without intermediaries**
+
+---
+
+## ⚠️ Fork: RTSP Server Support
+
+This fork adds a native RTSP server (`rtsp_server` command) that streams camera video directly via RTSP/RTP over TCP, allowing direct integration with NVRs, Blue Iris, Home Assistant, VLC, and any other RTSP-compatible client — **without any external tools like ffmpeg or mediamtx**.
+
+### How it works
+
+The original `http_server` command serves JPEG frames over HTTP multipart (MJPEG). This fork adds `rtsp_server`, which takes those same JPEG frames and delivers them over RTSP using **RTP/JPEG payload (RFC 2435)** with **TCP interleaved transport (RFC 2326)**.
+
+```
+Camera (iLnkP2P/UDP)
+       ↓
+  cam-reverse
+       ↓
+  RTSP server (TCP :8554)
+       ↓
+  NVR / VLC / Home Assistant
+```
+
+### Running the RTSP server
+
+```bash
+node dist/bin.cjs rtsp_server --discovery_ip 192.168.1.255
+```
+
+Then point your NVR or player to:
+```
+rtsp://<your-machine-ip>:8554/camera
+```
+
+#### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--port` | `8554` | RTSP port to listen on |
+| `--discovery_ip` | from config | Camera discovery broadcast IP |
+| `--config_file` | — | Path to yml config file |
+| `--log_level` | `info` | Log level (debug, info, warning) |
+
+#### Example with custom port
+
+```bash
+node dist/bin.cjs rtsp_server --discovery_ip 192.168.0.255 --port 554
+```
+
+#### VLC
+
+Open `Media → Open Network Stream` and enter:
+```
+rtsp://<your-machine-ip>:8554/camera
+```
+
+Make sure VLC is set to use **RTP over RTSP (TCP)**:
+`Tools → Preferences → Input/Codecs → RTP over RTSP (TCP)`
+
+#### NVR
+
+Add a new IP camera using the **Generic RTSP** or **Custom RTSP** option and set the stream URL to:
+```
+rtsp://<your-machine-ip>:8554/camera
+```
+
+No username or password required.
+
+#### Config file
+
+The `rtsp_server` command accepts the same config file format as `http_server`:
+
+```yml
+discovery_ips:
+  - 192.168.0.255
+
+logging:
+  level: info
+  use_color: true
+```
+
+```bash
+node dist/bin.cjs rtsp_server --config_file config.yml
+```
+
+### Technical notes
+
+- Transport: **RTP/AVP/TCP interleaved** (more reliable than UDP, works through firewalls and NAT)
+- Payload type: **26 (JPEG)** per RFC 2435
+- Clock rate: 90000 Hz, timestamp increment 6000 (~15fps)
+- Quantization tables are extracted from each JPEG frame and embedded in the RTP stream
+- Multiple simultaneous RTSP clients are supported
+- The server automatically discovers the local IP and logs the exact URL to connect to
+
+---
+
+### Cloud / spyware
+
+The A7 camera uses the **iLnkP2P** protocol and connects to Tencent cloud servers on boot. It is strongly recommended to block outbound internet access for the camera on your router. The `rtsp_server` and `http_server` commands work fully without internet access.
+
+### Firmware alternatives
+
+The [OpenBK7231T](https://github.com/openshwprojects/OpenBK7231T_App) project provides open firmware for XR872 (`OpenXR872_x.xx.xxx.img`), but as of early 2025 **the camera driver for XR872 is not yet implemented**, meaning video does not work after flashing. Use this software (`cam-reverse`) as the current best option for local streaming.
+
+---
 
 ## Building
 
@@ -86,7 +190,7 @@ You must restart the HTTP server for changes to the settings file to take effect
 ### Single capture mode
 
 ```bash
-node bin.cjs frame --discovery_ip 192.168.40.104 --out out.jpg 
+node bin.cjs frame --discovery_ip 192.168.40.104 --out out.jpg
 ```
 
 ----
@@ -131,7 +235,7 @@ sequenceDiagram
     Cam->>-App: [C] P2PRdy
     App->>+Cam: [C] ConnectUser
     Cam->>-App: [C] ConnectUserAck (Ticket)
-   
+
    loop Every 400-500ms
         Cam-->>+App: [C] P2PAlive
         App-->>-Cam: [C] P2PAliveAck
@@ -151,7 +255,7 @@ title: Stream audio/video
 
 sequenceDiagram
     App->>Cam: [C] StreamStart (with Ticket)
-   
+
    loop
         Cam-->>+App: [D] Audio/Video Payload
         App-->>-Cam: [C] DrwAck
@@ -184,18 +288,18 @@ net mask  : 1.1.1.1
 network i
 nterface: ^@^@
 MTU: 0
-MAC: 
-FLAGS: DOWN LINK_DOWN  
+MAC:
+FLAGS: DOWN LINK_DOWN
 ip address: 127.0.0.1
 gw address: 127.0.0.1
-net mask  : 255.0.0.0   
+net mask  : 255.0.0.0
 ```
 
 ## Spyware
 
 When connecting the camera to a network, it tries to send a HELLO (?) to 4 IP addresses:
 ```
-139.155.68.77 - Shenzhen Tencent Computer Systems Company Limited 
+139.155.68.77 - Shenzhen Tencent Computer Systems Company Limited
 119.45.114.92 - Shenzhen Tencent Computer Systems Company Limited
 162.62.63.154 - Tencent Building, Kejizhongyi Avenue
 3.132.215.40 - ec2-3-132-215-40.us-east-2.compute.amazonaws.com
