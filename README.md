@@ -1,6 +1,6 @@
 Re-implementation of the "iLnk"/"iLnkP2P"/"PPPP" protocol used on some cheap (\<$5) IP cameras (sometimes branded as 'X5' or 'A9').
 
-* Bought [this X5](https://www.aliexpress.com/item/1005006287788979.html) and [this A9](https://www.aliexpress.com/item/1005006117593880.html)and this fork tested with [this A7 1080p](http://pt.aliexpress.com/item/1005011735155071.html).
+* Bought [this X5](https://www.aliexpress.com/item/1005006287788979.html) and [this A9](https://www.aliexpress.com/item/1005006117593880.html) and this fork tested with [this A7 1080p](http://pt.aliexpress.com/item/1005011735155071.html).
 * App is [YsxLite](https://play.google.com/store/apps/details?id=com.ysxlite.cam&hl=en&gl=US)
 
 
@@ -136,11 +136,19 @@ To execute the HTTP server, run `node dist/bin.cjs http_server`; you can access 
 
 The roundtrip delay when using MJPEG is [~350ms](pics/delay.jpg?raw=true).
 
-There's a basic UI which can display multiple cameras:
+The modern UI features a dark/light theme, responsive grid layout, search/filter, FPS and signal quality indicators, and audio streaming controls.
 
-![](pics/web-ui.jpg?raw=true)
+### Mobile
 
-Clicking on the image will take you to a page that has audio streaming. Click the button below the image to mute/unmute the audio.
+| Dashboard | Camera View |
+|---|---|
+| ![](pics/mobileAll.png?raw=true) | ![](pics/mobileCam.png?raw=true) |
+
+### PC
+
+| Dashboard | Camera View |
+|---|---|
+| ![](pics/pcAll.png?raw=true) | ![](pics/pcCam.png?raw=true) |
 
 
 #### Settings
