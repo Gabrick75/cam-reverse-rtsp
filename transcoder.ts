@@ -67,6 +67,8 @@ export function createTranscoder(): Transcoder {
   let gstProcess: ChildProcess | null = null;
   let sps: Buffer | null = null;
   let pps: Buffer | null = null;
+  let stdinBackpressure = false;
+  let droppedFrames = 0;
 
   udpSocket.on("message", (msg: Buffer) => {
     const nalType = extractNalType(msg);
@@ -93,7 +95,7 @@ export function createTranscoder(): Transcoder {
       "!", "videoconvert",
       "!", "openh264enc",
         "complexity=low",
-        "bitrate=500000",
+        "bitrate=300000",
         "gop-size=15",
         "usage-type=camera",
       "!", "video/x-h264,stream-format=byte-stream,profile=constrained-baseline",
@@ -137,8 +139,24 @@ export function createTranscoder(): Transcoder {
   return {
     eventEmitter,
     writeJpeg: (jpeg: Buffer) => {
-      if (gstProcess?.stdin && !gstProcess.stdin.destroyed) {
-        gstProcess.stdin.write(jpeg);
+      if (!gstProcess?.stdin || gstProcess.stdin.destroyed) return;
+
+      if (stdinBackpressure) {
+        droppedFrames++;
+        if (droppedFrames % 30 === 1) {
+          logger.warning(`GStreamer stdin backpressure — dropped ${droppedFrames} frames`);
+        }
+        return;
+      }
+
+      const ok = gstProcess.stdin.write(jpeg);
+      if (!ok) {
+        stdinBackpressure = true;
+        droppedFrames = 0;
+        gstProcess.stdin.once("drain", () => {
+          stdinBackpressure = false;
+          logger.debug("GStreamer stdin drained, resuming frame intake");
+        });
       }
     },
     close: () => {
