@@ -45,11 +45,9 @@ type msgCb = (
 ) => void;
 
 const handleIncoming: msgCb = (session, handlers, msg, rinfo) => {
-  const ab = new Uint8Array(msg).buffer;
-  const dv = new DataView(ab);
+  const dv = new DataView(msg.buffer, msg.byteOffset, msg.byteLength);
   const raw = dv.readU16();
   const cmd = CommandsByValue[raw];
-  logger.log("trace", `<< ${cmd}`);
   handlers[cmd](session, dv, rinfo);
   if (raw != Commands.P2PAlive && raw != Commands.P2PAliveAck) {
     session.lastReceivedPacket = Date.now();
@@ -74,6 +72,7 @@ export const makeSession = (
   sock.on("message", (msg, rinfo) => handleIncoming(session, handlers, msg, rinfo));
 
   sock.on("listening", () => {
+    try { sock.setRecvBufferSize(1024 * 1024); } catch (_) {}
     const buf = makeP2pRdy(dev);
     session.send(buf);
     session.started = true;
@@ -100,7 +99,6 @@ export const makeSession = (
       const { sent_ts, data } = value;
       if (now - sent_ts > 100) {
         const pkt_id = data.add(6).readU16();
-        logger.debug(`Resending packet ${pkt_id} as ${session.outgoingCommandId}`);
         data.add(6).writeU16(session.outgoingCommandId);
         session.outgoingCommandId++;
         delete session.unackedDrw[key];
@@ -120,18 +118,14 @@ export const makeSession = (
     started: false,
     send: (msg: DataView) => {
       const raw = msg.readU16();
-      const cmd = CommandsByValue[raw];
       // send command
       if (raw == 0xf1d0 && msg.add(4).readU8() == 0xd1) {
         const packet_id = msg.add(6).readU16();
-        logger.debug(`Sending Drw Packet with id ${packet_id}`);
         unackedDrw[packet_id] = { sent_ts: Date.now(), data: msg };
       }
-      logger.log("trace", `>> ${cmd}`);
       sock.send(new Uint8Array(msg.buffer), ra.port, session.dst_ip);
     },
     ackDrw: (id: number) => {
-      logger.debug(`Removing ${id} from pending`);
       delete unackedDrw[id];
     },
     dst_ip: ra.address,
