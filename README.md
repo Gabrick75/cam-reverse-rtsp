@@ -1,381 +1,80 @@
-Re-implementation of the "iLnk"/"iLnkP2P"/"PPPP" protocol used on some cheap (\<$5) IP cameras (sometimes branded as 'X5' or 'A9').
+<p align="center">
+  <img src="pics/front.jpg" width="300" alt="X5 Camera">
+</p>
 
-* Bought [this X5](https://www.aliexpress.com/item/1005006287788979.html) and [this A9](https://www.aliexpress.com/item/1005006117593880.html) and this fork tested with [this A7 1080p](http://pt.aliexpress.com/item/1005011735155071.html).
-* App is [YsxLite](https://play.google.com/store/apps/details?id=com.ysxlite.cam&hl=en&gl=US)
+<h1 align="center">cam-reverse-rtsp</h1>
 
+<p align="center">
+  Reverse-engineered RTSP/HTTP server for ultra-cheap iLnkP2P IP cameras (X5, A9, A7)
+</p>
 
-Per pictures of the [X5](https://github.com/DavidVentura/cam-reverse/blob/master/pics/pcb.jpg?raw=true), [A9](https://github.com/DavidVentura/cam-reverse/blob/master/pics/pcb_a9.jpg?raw=true) the main chip is TXW817 ([chinese](https://www.taixin-semi.com/Product/ProductDetail?productId=306), [eng, google translate](https://www-taixin--semi-com.translate.goog/Product/ProductDetail?productId=306&_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en&_x_tr_pto=wapp))
+---
+
+Re-implementation of the **iLnkP2P/PPPP** protocol used on cheap (<$5) IP cameras with the **TXW817** chip. Streams camera video directly to NVRs, VLC, Blue Iris, Home Assistant, or any RTSP/MJPEG client -- no cloud, no app, no intermediaries.
+
+Tested with [X5](https://www.aliexpress.com/item/1005006287788979.html), [A9](https://www.aliexpress.com/item/1005006117593880.html), and [A7 1080p](http://pt.aliexpress.com/item/1005011735155071.html). App: [YsxLite](https://play.google.com/store/apps/details?id=com.ysxlite.cam).
 
 ## Features
 
-- Multi camera support
-- Audio & video streaming
-- Rotation / mirroring of video streams
-- Friendly names for cameras
-- Ability to configure "blank" cameras with Wifi settings
-- **[Fork] Native RTSP server — connect directly to any NVR or VLC without intermediaries**
+- **RTSP server** -- H.264 (via GStreamer) or JPEG/RTP, TCP and UDP transport
+- **HTTP server** -- MJPEG streaming + web UI dashboard
+- Multi-camera support, audio & video
+- Rotation / mirroring, friendly names
+- WiFi camera configuration (pairing)
+- Single frame capture
 
----
-
-## ⚠️ Fork: RTSP Server Support
-
-This fork adds a native RTSP server (`rtsp_server` command) that streams camera video directly via RTSP/RTP over TCP, allowing direct integration with NVRs, Blue Iris, Home Assistant, VLC, and any other RTSP-compatible client — **without any external tools like ffmpeg or mediamtx**.
-
-### How it works
-
-The original `http_server` command serves JPEG frames over HTTP multipart (MJPEG). This fork adds `rtsp_server`, which takes those same JPEG frames and delivers them over RTSP using **RTP/JPEG payload (RFC 2435)** with **TCP interleaved transport (RFC 2326)**.
-
-```
-Camera (iLnkP2P/UDP)
-       ↓
-  cam-reverse
-       ↓
-  RTSP server (TCP :8554)
-       ↓
-  NVR / VLC / Home Assistant
-```
-
-### Running the RTSP server
+## Quick start
 
 ```bash
+npm install && npm run build
+
+# RTSP (for NVR / VLC / Blue Iris)
 node dist/bin.cjs rtsp_server --discovery_ip 192.168.1.255
+
+# HTTP (for browser)
+node dist/bin.cjs http_server --discovery_ip 192.168.1.255
 ```
 
-Then point your NVR or player to:
-```
-rtsp://<your-machine-ip>:8554/camera
-```
+Connect to `rtsp://<your-ip>:8554/camera` or open `http://localhost:5000`.
 
-#### Options
+## Documentation
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--port` | `8554` | RTSP port to listen on |
-| `--discovery_ip` | from config | Camera discovery broadcast IP |
-| `--config_file` | — | Path to yml config file |
-| `--log_level` | `info` | Log level (debug, info, warning) |
+| | |
+|---|---|
+| [Architecture](docs/architecture.md) | Project structure, data flow, source files |
+| [Initial Setup](docs/guide-initial-setup.md) | Building, pairing cameras, running, config |
+| [RTSP Server](docs/rtsp.md) | RTSP/RTP streaming, H.264/JPEG modes, compatibility |
+| [HTTP Server](docs/http_server.md) | MJPEG streaming, web UI, routes |
+| [iLnkP2P Protocol](docs/protocol.md) | Reverse-engineered camera protocol |
+| [GStreamer](docs/gstreamer.md) | JPEG-to-H.264 transcoding pipeline |
+| [Reverse Engineering](docs/reversing.md) | Ghidra, Frida, Wireshark dissector |
 
-#### Example with custom port
+## Camera PCB
 
-```bash
-node dist/bin.cjs rtsp_server --discovery_ip 192.168.0.255 --port 554
-```
+<p align="center">
+  <img src="pics/pcb.jpg" width="400" alt="X5 PCB">
+</p>
 
-#### VLC
+Per pictures of the [X5](https://github.com/DavidVentura/cam-reverse/blob/master/pics/pcb.jpg?raw=true) and [A9](https://github.com/DavidVentura/cam-reverse/blob/master/pics/pcb_a9.jpg?raw=true), the main chip is TXW817 ([chinese](https://www.taixin-semi.com/Product/ProductDetail?productId=306), [english](https://www-taixin--semi-com.translate.goog/Product/ProductDetail?productId=306&_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en&_x_tr_pto=wapp)).
 
-Open `Media → Open Network Stream` and enter:
-```
-rtsp://<your-machine-ip>:8554/camera
-```
+## Cloud / spyware
 
-Make sure VLC is set to use **RTP over RTSP (TCP)**:
-`Tools → Preferences → Input/Codecs → RTP over RTSP (TCP)`
+The cameras connect to Tencent cloud servers on boot. **Block outbound internet access** on your router. Both servers work fully offline. See [Protocol docs](docs/protocol.md) for details on the spyware IPs.
 
-#### NVR
+## Firmware alternatives
 
-Add a new IP camera using the **Generic RTSP** or **Custom RTSP** option and set the stream URL to:
-```
-rtsp://<your-machine-ip>:8554/camera
-```
-
-No username or password required.
-
-#### Config file
-
-The `rtsp_server` command accepts the same config file format as `http_server`:
-
-```yml
-discovery_ips:
-  - 192.168.0.255
-
-logging:
-  level: info
-  use_color: true
-```
-
-```bash
-node dist/bin.cjs rtsp_server --config_file config.yml
-```
-
-### Technical notes
-
-- Transport: **RTP/AVP/TCP interleaved** (more reliable than UDP, works through firewalls and NAT)
-- Payload type: **26 (JPEG)** per RFC 2435
-- Clock rate: 90000 Hz, timestamp increment 6000 (~15fps)
-- Quantization tables are extracted from each JPEG frame and embedded in the RTP stream
-- Multiple simultaneous RTSP clients are supported
-- The server automatically discovers the local IP and logs the exact URL to connect to
-
----
-
-### Cloud / spyware
-
-The A7 camera uses the **iLnkP2P** protocol and connects to Tencent cloud servers on boot. It is strongly recommended to block outbound internet access for the camera on your router. The `rtsp_server` and `http_server` commands work fully without internet access.
-
-### Firmware alternatives
-
-The [OpenBK7231T](https://github.com/openshwprojects/OpenBK7231T_App) project provides open firmware for XR872 (`OpenXR872_x.xx.xxx.img`), but as of early 2025 **the camera driver for XR872 is not yet implemented**, meaning video does not work after flashing. Use this software (`cam-reverse`) as the current best option for local streaming.
-
----
+[OpenBK7231T](https://github.com/openshwprojects/OpenBK7231T_App) provides open firmware for XR872, but the camera driver is not yet implemented. cam-reverse-rtsp is the current best option for local streaming.
 
 ## Building
 
-Run `make build` or `npm run build` to build the server artifact. You can also find some pre-built files [in the CI results](https://github.com/DavidVentura/cam-reverse/actions) or [in the releases](https://github.com/DavidVentura/cam-reverse/releases/)
-
-## Pairing a new camera
-
-Ensure your device in access point mode (the blue LED blinks slowly to indicate that); optionally, press the MODE button for 5s to switch to access point mode.
-
-Connect to the device's access point (e.g., FTYC811847AGFDZ) and run `node dist/bin.cjs pair --ssid <SSID> --password <PASSWORD>`.
-
-
-## Running
-
-### HTTP Server
-To execute the HTTP server, run `node dist/bin.cjs http_server`; you can access the JPEG stream at http://localhost:5000/.
-
-The roundtrip delay when using MJPEG is [~350ms](pics/delay.jpg?raw=true).
-
-The modern UI features a dark/light theme, responsive grid layout, search/filter, FPS and signal quality indicators, and audio streaming controls.
-
-### Mobile
-
-| Dashboard | Camera View |
-|---|---|
-| ![](pics/mobileAll.png?raw=true) | ![](pics/mobileCam.png?raw=true) |
-
-### PC
-
-| Dashboard | Camera View |
-|---|---|
-| ![](pics/pcAll.png?raw=true) | ![](pics/pcCam.png?raw=true) |
-
-
-#### Settings
-
-You can provide a config file in `yml` format, then pass it as an argument: `node bin.cjs http_server --config_file <your_config.yml>`
-
-```yml
-http_server:
-  port: 5000
-
-logging:
-  level: debug
-  use_color: true
-
-cameras:
-  FTYC477360FAWUK:
-    alias: "A9"
-    rotate: 1
-    mirror: false
-    fix_packet_loss: yes
-    audio: true
-  BATC609531EXLVS:
-    alias: "X5"
-
-# If you are crossing broadcast domains (VLANs) then
-# you need to specify all IPs as unicast targets
-discovery_ips:
-  - 192.168.40.101
-  - 192.168.40.102
-  - 192.168.40.103
-  - 192.168.40.104
-  - 192.168.40.105
-
-# If you are in the same broadcast domain, then
-# it's easier to just use the broadcast address of your network
-# discovery_ips:
-#   - 192.168.1.255
-
-blacklisted_ips:
-  - 192.168.40.102
-```
-
-All keys are optional
-
-You must restart the HTTP server for changes to the settings file to take effect.
-
-### Single capture mode
-
 ```bash
-node bin.cjs frame --discovery_ip 192.168.40.104 --out out.jpg
+npm run build     # esbuild -> dist/bin.cjs
+npm run typecheck # TypeScript type checking
+npm test          # Mocha tests
 ```
 
-----
+Pre-built binaries: [CI results](https://github.com/DavidVentura/cam-reverse/actions) | [Releases](https://github.com/DavidVentura/cam-reverse/releases/)
 
-## Protocol
+## License
 
-The protocol is weirdly complex, though very little communication is necessary to use the device
-
-The base structure of a packet is:
-
-![](diagrams/packet.svg)
-
-The payload is command-dependent; most commands have only a literal payload, but the `Drw` (`0xf1d0`) command has a framing scheme:
-
-By using the second byte in the payload as a discriminant, we can split the payload into two types of subcommands:
-
-**Control packets**:
-
-![](diagrams/control_packet.svg)
-
-The payload on control packets is "encrypted" when the length is > 5.
-
-**Data packets**:
-
-![](diagrams/data_packet.svg)
-
-Data packets further discriminate based on the first 4 bytes into: Audio Data (0x55aa15a8), Video data.
-
-### Session
-
-To establish a session, a few _control packets_ are sent.
-```mermaid
----
-title: Establish session
----
-
-sequenceDiagram
-	autonumber
-    App->>+Cam: [C] LanSearch
-    Cam->>-App: [C] PunchPkt (SerialNo)
-    App->>+Cam: [C] P2PRdy
-    Cam->>-App: [C] P2PRdy
-    App->>+Cam: [C] ConnectUser
-    Cam->>-App: [C] ConnectUserAck (Ticket)
-
-   loop Every 400-500ms
-        Cam-->>+App: [C] P2PAlive
-        App-->>-Cam: [C] P2PAliveAck
-    end
-```
-
-To start a stream, a single _control packet_ is sent.
-
-The received stream is broken up into 1028 byte payloads, along with a sequence number.
-
-Stitching the payloads together yields JPEG frames for video, and 8KHz A-law PCM for audio.
-
-```mermaid
----
-title: Stream audio/video
----
-
-sequenceDiagram
-    App->>Cam: [C] StreamStart (with Ticket)
-
-   loop
-        Cam-->>+App: [D] Audio/Video Payload
-        App-->>-Cam: [C] DrwAck
-    end
-```
-
-### Serial
-
-The A9 cameras have a TX/RX test points - connecting with UART at 921600 8N1 gives _read only_ access to some debug logs.
-
-### Discrepancies between cameras
-
-1. Wifi Strength
-	- A9 reports '100%' strength
-	- X5 reports different strength values
-
-I bricked two cameras by patching out part of the WiFi setup - unclear yet which commands.
-
-After bricking itself, it reports very broken configuration via serial:
-
-```
-network interface: ƀ (Default)
-MTU: 51050
-MAC: 06 18 40 06 3e 51 b4 e2 c6 80 06 3f 77 30 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 74 00 00 00 01 00 00 00 9c ea 01 20 00 00 00 00 00 00 00 00 00 28 60 00 00 00 00 00 00 00 00 00 06 4e 00 20 2a 00 2a 00 80 00 00 00 00 00 ff ff ff ff   ff ff 3e 51 b4 e2 c6 80 08 06 00 01 08 00 06 04 00 01 3e 51 b4 e2 c6 80 01 01 01 01 00 00 00 00 00 00 01 01 01 01 00 28 74 00 00 00 00 00 00 00 00 00 58 4e 00 20 48 00 48 00 80 00 00 00 00 00 ff ff ff ff ff ff 3e 51 b4 e2 c6 80 08 06 45 00 00   48 00 51 00 00 ff 11 c8 be 01 01 01 01 23 9c cc f7 7d 6c
-FLAGS: DOWN LINK_DOWN IGMP
-ip address: 1.1.1.1
-gw address: 1.1.1.1
-net mask  : 1.1.1.1
-
-network i
-nterface: ^@^@
-MTU: 0
-MAC:
-FLAGS: DOWN LINK_DOWN
-ip address: 127.0.0.1
-gw address: 127.0.0.1
-net mask  : 255.0.0.0
-```
-
-## Spyware
-
-When connecting the camera to a network, it tries to send a HELLO (?) to 4 IP addresses:
-```
-139.155.68.77 - Shenzhen Tencent Computer Systems Company Limited
-119.45.114.92 - Shenzhen Tencent Computer Systems Company Limited
-162.62.63.154 - Tencent Building, Kejizhongyi Avenue
-3.132.215.40 - ec2-3-132-215-40.us-east-2.compute.amazonaws.com
-```
-
-With the payload
-```
-0000   f1 10 00 28 42 41 54 43 00 00 00 00 00 09 4d 2c   ...(BATC......M,
-0010   48 56 44 43 53 00 00 00 08 00 02 01 00 00 6c 7d   HVDCS.........l}
-0020   65 28 a8 c0 00 00 00 00 00 00 00 00               e(..........
-```
-
-which is `DevLogin`
-
-
-These addresses are decoded (script at `scripts/dec_svr.py`) from the string `SWPNPDPFLVAOLNSXPHSQPIEOPAIDENLXHXEHIFLKPGLRHUARSTLQEEEPSUIHPDLSPEAOICLOSQEMLPPALNIBIAERHZLKHXEJHYHUEIEHELEEEKEG`.
-
-Every 8-10s
-
-There are some other strings in the APK ending in `-$$` which decode to other ips/hostnames.
-
-Most of the IPs point to AWS compute instances, and this connection is probably used to see live streams over the Internet using the app. It's fine (and recommended!) to block outgoing traffic from the cameras, as it won't affect the HTTP server.
-
-
-## Other stuff
-
-These little cameras have quite some packet loss - I _tried_ to deal with it by splicing around it on the JPEG payloads, but it's probably wrong, I expected artifacts like this:
-
-![](pics/packet_loss_good.jpg?raw=true)
-
-but most of the time got:
-
-![](pics/packet_loss_bad.jpg?raw=true)
-
-which _moves_ the rest of the image, causing more visual noise.
-
-For now, images on which there was packet loss get skipped. The algorithm to "fix" packet loss can be enabled as an option.
-
-
-## Reversing
-
-The interesting implementation is in `libvdp.so`, part of the apk bundle.
-
-Protocol reversing was done with a combination of static analysis of the shared object with [Ghidra](https://ghidra-sre.org/) and dynamic analysis with [Frida](https://frida.re/docs/javascript-api/).
-
-The headers reversed with Ghidra are at `types/all.h`. They are almost not used by this minimal implementation though.
-
-The hooks used with frida are at `frida-hooks.js`, but it's mostly a playground - some useful functions got deleted once I understood the protocol.
-
-There's also a partial Wireshark dissector at `dissector.lua`. You can install it with `make install-wireshark-dissector`.
-
-### Take APK from emulator/sacrificial device
-```
-adb shell pm list packages | grep ysx
-adb shell pm path com.ysxlite.cam
-adb shell pm path com.ysxlite.cam | while read -r line ; do adb pull $(echo $line | cut -d: -f2-) ;  done
-```
-### Push to sacrificial device
-```
-adb install-multiple *apk
-```
-
-### Frida install Android
-
-[docs](https://frida.re/docs/android/)
-
-### Start frida server
-
-```
-adb shell 'su -c nohup /data/local/tmp/frida-server-16.1.11-android-arm64 &'
-```
+See repository for license details. This is a fork of [DavidVentura/cam-reverse](https://github.com/DavidVentura/cam-reverse).
