@@ -13,7 +13,7 @@ export type Transcoder = {
 };
 
 export async function isGStreamerAvailable(): Promise<boolean> {
-  return new Promise((resolve) => {
+  const gstVersion = await new Promise<boolean>((resolve) => {
     const proc = spawn("gst-launch-1.0", ["--version"]);
     let out = "";
     proc.stdout?.on("data", (d: Buffer) => { out += d; });
@@ -24,6 +24,25 @@ export async function isGStreamerAvailable(): Promise<boolean> {
     });
     proc.on("error", () => resolve(false));
   });
+
+  if (!gstVersion) return false;
+
+  const hasPlugin = await new Promise<boolean>((resolve) => {
+    const proc = spawn("gst-launch-1.0", [
+      "-q", "videotestsrc", "num-buffers=1",
+      "!", "videoconvert",
+      "!", "openh264enc",
+      "!", "fakesink",
+    ]);
+    proc.on("close", (code) => resolve(code === 0));
+    proc.on("error", () => resolve(false));
+  });
+
+  if (!hasPlugin) {
+    logger.warning("GStreamer found but openh264enc plugin missing — falling back to JPEG/RTP");
+  }
+
+  return hasPlugin;
 }
 
 function extractNalType(rtp: Buffer): number | null {
@@ -69,7 +88,6 @@ export function createTranscoder(): Transcoder {
     const port = udpSocket.address().port;
 
     const args = [
-      "-q",
       "fdsrc", "fd=0",
       "!", "jpegdec",
       "!", "videoconvert",
@@ -90,15 +108,19 @@ export function createTranscoder(): Transcoder {
 
     gstProcess = spawn("gst-launch-1.0", args, { stdio: ["pipe", "ignore", "pipe"] });
 
+    let stderrOutput = "";
     gstProcess.stderr?.on("data", (data: Buffer) => {
       const line = data.toString().trim();
       if (line && !line.includes("Redistribute latency")) {
         logger.debug(`GStreamer: ${line}`);
+        stderrOutput += line + "\n";
       }
     });
 
     gstProcess.on("close", (code) => {
-      logger.warning(`GStreamer exited with code ${code}`);
+      if (code !== 0) {
+        logger.warning(`GStreamer exited with code ${code}: ${stderrOutput.trim() || "(no error output)"}`);
+      }
       gstProcess = null;
       eventEmitter.emit("exit", code);
     });

@@ -10,6 +10,41 @@ node dist/bin.cjs rtsp_server --discovery_ip 192.168.1.255
 
 Connect to `rtsp://<your-machine-ip>:8554/camera`. No credentials required.
 
+## Installing GStreamer (H.264 mode)
+
+The H.264 transcoding mode requires GStreamer and the `openh264enc` encoder. If GStreamer is not installed, the server falls back to JPEG/RTP automatically.
+
+### Ubuntu / Debian
+
+```bash
+sudo apt install gstreamer1.0-tools \
+  gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good \
+  gstreamer1.0-plugins-bad
+```
+
+### Fedora
+
+```bash
+sudo dnf install gstreamer1-plugins-base \
+  gstreamer1-plugins-good \
+  gstreamer1-plugins-bad-free
+```
+
+### Arch Linux
+
+```bash
+sudo pacman -S gst-plugins-base gst-plugins-good gst-plugins-bad
+```
+
+### Verify
+
+```bash
+gst-launch-1.0 --version
+```
+
+If this prints a version number, the RTSP server will automatically use H.264 mode.
+
 ## Streaming modes
 
 The server selects a mode automatically at startup based on GStreamer availability.
