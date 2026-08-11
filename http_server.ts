@@ -216,7 +216,7 @@ footer a:hover{text-decoration:underline}
   </div>
   <div class="header-right">
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#x263E;</button>
-    <a href="https://github.com/Gabrick75/cam-reverse-rtsp" class="github-link" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/DavidVentura/cam-reverse" class="github-link" target="_blank" rel="noopener">GitHub</a>
   </div>
 </header>
 <div class="dashboard-header">
@@ -230,7 +230,7 @@ footer a:hover{text-decoration:underline}
   ${cameraCards || '<div class="empty-state"><h3>No cameras discovered</h3><p>Waiting for devices to appear on the network...</p></div>'}
 </div>
 <footer>
-  <a href="https://github.com/Gabrick75/cam-reverse-rtsp">Cam Reverse RTSP</a> &middot; Open source camera streaming
+  <a href="https://github.com/DavidVentura/cam-reverse">Cam Reverse RTSP</a> &middot; Open source camera streaming
 </footer>
 <script>
 (function() {
@@ -294,7 +294,9 @@ function filterCameras() {
       const exifSegment = orientations[orientation];
       const jpegHeader = addExifToJpeg(s.curImage[0], exifSegment);
       const assembled = Buffer.concat([jpegHeader, ...s.curImage.slice(1)]);
-      const header = Buffer.from(`\r\n--${BOUNDARY}\r\nContent-Length: ${assembled.length}\r\nContent-Type: image/jpeg\r\n\r\n`);
+      const header = Buffer.from(
+        `\r\n--${BOUNDARY}\r\nContent-Length: ${assembled.length}\r\nContent-Type: image/jpeg\r\n\r\n`,
+      );
       responses[dev.devId].forEach((res) => {
         res.write(header);
         res.write(assembled);

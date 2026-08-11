@@ -1,6 +1,6 @@
 {
-
   "include": ["*.ts"],
+  "exclude": ["bin.ts"],
   "compilerOptions": {
     "target": "es6",
     "module": "es6",
@@ -13,4 +13,3 @@
     "sourceMap": false
   }
 }
-

@@ -12,15 +12,15 @@ Open `http://localhost:5000` in a browser.
 
 ## Routes
 
-| Route | Description |
-|-------|-------------|
-| `/` | Dashboard -- camera grid with dark/light theme, search/filter |
-| `/camera/<devId>` | MJPEG stream (`multipart/x-mixed-replace`) |
-| `/ui/<devId>` | Per-camera UI page |
-| `/audio/<devId>` | Audio stream via Server-Sent Events (SSE) |
-| `/rotate/<devId>` | Rotate camera 90 degrees (cycles 0-3) |
-| `/mirror/<devId>` | Toggle mirror |
-| `/favicon.ico` | Favicon |
+| Route             | Description                                                   |
+| ----------------- | ------------------------------------------------------------- |
+| `/`               | Dashboard -- camera grid with dark/light theme, search/filter |
+| `/camera/<devId>` | MJPEG stream (`multipart/x-mixed-replace`)                    |
+| `/ui/<devId>`     | Per-camera UI page                                            |
+| `/audio/<devId>`  | Audio stream via Server-Sent Events (SSE)                     |
+| `/rotate/<devId>` | Rotate camera 90 degrees (cycles 0-3)                         |
+| `/mirror/<devId>` | Toggle mirror                                                 |
+| `/favicon.ico`    | Favicon                                                       |
 
 ## MJPEG streaming
 
@@ -40,14 +40,14 @@ Multiple clients can connect simultaneously per camera.
 
 **Mobile:**
 
-| Dashboard | Camera View |
-|-----------|-------------|
+| Dashboard                           | Camera View                         |
+| ----------------------------------- | ----------------------------------- |
 | ![](../pics/mobileAll.png?raw=true) | ![](../pics/mobileCam.png?raw=true) |
 
 **Desktop:**
 
-| Dashboard | Camera View |
-|-----------|-------------|
+| Dashboard                       | Camera View                     |
+| ------------------------------- | ------------------------------- |
 | ![](../pics/pcAll.png?raw=true) | ![](../pics/pcCam.png?raw=true) |
 
 ## Latency
@@ -56,13 +56,13 @@ MJPEG roundtrip delay is [~350ms](../pics/delay.jpg?raw=true).
 
 ## Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--port` | `5000` | HTTP port |
-| `--discovery_ip` | `192.168.1.255` | Camera discovery IP |
-| `--config_file` | -- | YAML config path |
-| `--log_level` | `info` | `debug`, `info`, `warning` |
-| `--audio` | `false` | Enable audio streaming |
+| Option           | Default         | Description                |
+| ---------------- | --------------- | -------------------------- |
+| `--port`         | `5000`          | HTTP port                  |
+| `--discovery_ip` | `192.168.1.255` | Camera discovery IP        |
+| `--config_file`  | --              | YAML config path           |
+| `--log_level`    | `info`          | `debug`, `info`, `warning` |
+| `--audio`        | `false`         | Enable audio streaming     |
 
 ## Config
 
@@ -87,10 +87,10 @@ All keys are optional. Restart the server for changes to take effect.
 
 ### Camera options
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `alias` | string | Custom name displayed in UI |
-| `rotate` | 0-3 | Rotation: 0=0deg, 1=90deg, 2=180deg, 3=270deg |
-| `mirror` | bool | Horizontal mirror |
-| `audio` | bool | Enable audio for this camera |
-| `fix_packet_loss` | bool | Attempt to fix JPEG packet loss artifacts |
+| Key               | Type   | Description                                   |
+| ----------------- | ------ | --------------------------------------------- |
+| `alias`           | string | Custom name displayed in UI                   |
+| `rotate`          | 0-3    | Rotation: 0=0deg, 1=90deg, 2=180deg, 3=270deg |
+| `mirror`          | bool   | Horizontal mirror                             |
+| `audio`           | bool   | Enable audio for this camera                  |
+| `fix_packet_loss` | bool   | Attempt to fix JPEG packet loss artifacts     |

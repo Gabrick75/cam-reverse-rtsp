@@ -33,18 +33,19 @@ adb install-multiple *apk
 [Android docs](https://frida.re/docs/android/)
 
 Start frida server:
+
 ```bash
 adb shell 'su -c nohup /data/local/tmp/frida-server-16.1.11-android-arm64 &'
 ```
 
 ### Files
 
-| File | Description |
-|------|-------------|
+| File                   | Description                                                                                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `func_replacements.js` | Frida hooks -- `Interceptor.replace` for `NetCmd`, `CmdSndPush`, `AvCmd`, `SystemCmd`. Contains JS translations of the original C functions: `XqBytesEnc`/`XqBytesDec`, packet builders |
-| `frida-hooks.js` | Playground for Frida hooks (mostly cleaned up) |
-| `dissector.lua` | Wireshark dissector for the iLnkP2P protocol on UDP port 32108 |
-| `types/all.h` | Ghidra-reversed header definitions (barely used by this implementation) |
+| `frida-hooks.js`       | Playground for Frida hooks (mostly cleaned up)                                                                                                                                          |
+| `dissector.lua`        | Wireshark dissector for the iLnkP2P protocol on UDP port 32108                                                                                                                          |
+| `types/all.h`          | Ghidra-reversed header definitions (barely used by this implementation)                                                                                                                 |
 
 ## Ghidra headers
 
@@ -53,6 +54,7 @@ Reversed struct/enum definitions are in `types/all.h`. They document the C struc
 ## Wireshark dissector
 
 Install:
+
 ```bash
 make install-wireshark-dissector
 ```

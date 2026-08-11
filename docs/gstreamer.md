@@ -34,15 +34,15 @@ Each camera gets its own transcoder instance (`transcoder.ts`):
 
 ## Requirements
 
-| Plugin | Package (Ubuntu/Debian) | Purpose |
-|--------|------------------------|---------|
-| `fdsrc` | `gstreamer1.0` | Read JPEG from stdin |
-| `jpegdec` | `gstreamer1.0-plugins-good` | Decode JPEG |
+| Plugin         | Package (Ubuntu/Debian)     | Purpose                |
+| -------------- | --------------------------- | ---------------------- |
+| `fdsrc`        | `gstreamer1.0`              | Read JPEG from stdin   |
+| `jpegdec`      | `gstreamer1.0-plugins-good` | Decode JPEG            |
 | `videoconvert` | `gstreamer1.0-plugins-good` | Color space conversion |
-| `openh264enc` | `gstreamer1.0-plugins-bad` | H.264 encoder |
-| `h264parse` | `gstreamer1.0-plugins-bad` | Parse H.264 |
-| `rtph264pay` | `gstreamer1.0-plugins-good` | RTP packetization |
-| `udpsink` | `gstreamer1.0-plugins-good` | UDP output |
+| `openh264enc`  | `gstreamer1.0-plugins-bad`  | H.264 encoder          |
+| `h264parse`    | `gstreamer1.0-plugins-bad`  | Parse H.264            |
+| `rtph264pay`   | `gstreamer1.0-plugins-good` | RTP packetization      |
+| `udpsink`      | `gstreamer1.0-plugins-good` | UDP output             |
 
 ### Install on Ubuntu/Debian
 
@@ -63,14 +63,14 @@ If GStreamer is not installed, the RTSP server falls back to JPEG/RTP mode autom
 
 ## Encoder parameters
 
-| Parameter | Value | Effect |
-|-----------|-------|--------|
-| `complexity` | `low` | Fastest encoding, minimal CPU |
-| `bitrate` | `300000` | 300 kbps target bitrate (see Tuning for per-device values) |
-| `gop-size` | `15` | Keyframe every 15 frames (~1s) |
-| `usage-type` | `camera` | Optimized for camera content |
-| `profile` | `constrained-baseline` | Maximum client compatibility |
-| `config-interval` | `-1` | SPS/PPS with every IDR frame |
+| Parameter         | Value                  | Effect                                                     |
+| ----------------- | ---------------------- | ---------------------------------------------------------- |
+| `complexity`      | `low`                  | Fastest encoding, minimal CPU                              |
+| `bitrate`         | `300000`               | 300 kbps target bitrate (see Tuning for per-device values) |
+| `gop-size`        | `15`                   | Keyframe every 15 frames (~1s)                             |
+| `usage-type`      | `camera`               | Optimized for camera content                               |
+| `profile`         | `constrained-baseline` | Maximum client compatibility                               |
+| `config-interval` | `-1`                   | SPS/PPS with every IDR frame                               |
 
 ## Tuning
 
@@ -78,35 +78,47 @@ All encoder parameters are in `transcoder.ts`, inside the GStreamer args array (
 
 ```typescript
 const args = [
-  "fdsrc", "fd=0",
-  "!", "jpegdec",
-  "!", "videoconvert",
-  "!", "openh264enc",
-    "complexity=low",     // ← encoding speed
-    "bitrate=300000",     // ← change this value
-    "gop-size=15",        // ← keyframe interval
-    "usage-type=camera",
-  "!", "video/x-h264,stream-format=byte-stream,profile=constrained-baseline",
-  "!", "h264parse",
-  "!", "rtph264pay", "config-interval=-1", "pt=96",
-  "!", "udpsink", "host=127.0.0.1", `port=${port}`,
+  "fdsrc",
+  "fd=0",
+  "!",
+  "jpegdec",
+  "!",
+  "videoconvert",
+  "!",
+  "openh264enc",
+  "complexity=low", // ← encoding speed
+  "bitrate=300000", // ← change this value
+  "gop-size=15", // ← keyframe interval
+  "usage-type=camera",
+  "!",
+  "video/x-h264,stream-format=byte-stream,profile=constrained-baseline",
+  "!",
+  "h264parse",
+  "!",
+  "rtph264pay",
+  "config-interval=-1",
+  "pt=96",
+  "!",
+  "udpsink",
+  "host=127.0.0.1",
+  `port=${port}`,
 ];
 ```
 
-| Goal | Parameter to change | Effect |
-|------|-------------------|--------|
-| **Lower bandwidth** | `bitrate=300000` | Reduces quality but uses less CPU and bandwidth |
-| **Higher quality** | `bitrate=500000` or `bitrate=700000` | Better image, more CPU and bandwidth |
-| **Faster encoding** | `complexity=low` (already set) | Fastest, use `medium` or `high` only on fast machines |
-| **Lower latency** | `gop-size=10` | More frequent keyframes, slightly more bandwidth |
+| Goal                | Parameter to change                  | Effect                                                |
+| ------------------- | ------------------------------------ | ----------------------------------------------------- |
+| **Lower bandwidth** | `bitrate=300000`                     | Reduces quality but uses less CPU and bandwidth       |
+| **Higher quality**  | `bitrate=500000` or `bitrate=700000` | Better image, more CPU and bandwidth                  |
+| **Faster encoding** | `complexity=low` (already set)       | Fastest, use `medium` or `high` only on fast machines |
+| **Lower latency**   | `gop-size=10`                        | More frequent keyframes, slightly more bandwidth      |
 
 Recommended values by device:
 
-| Device | `bitrate` | `complexity` | Notes |
-|--------|-----------|-------------|-------|
-| ARM 1GHz (msm8916, RPi Zero) | `200000`–`300000` | `low` | openh264enc is slow on weak CPUs |
-| ARM 2GHz+ (RPi 4, SBC) | `300000`–`500000` | `low` | comfortable headroom |
-| x86 notebook/desktop | `500000`–`1000000` | `low`–`medium` | plenty of CPU |
+| Device                       | `bitrate`          | `complexity`   | Notes                            |
+| ---------------------------- | ------------------ | -------------- | -------------------------------- |
+| ARM 1GHz (msm8916, RPi Zero) | `200000`–`300000`  | `low`          | openh264enc is slow on weak CPUs |
+| ARM 2GHz+ (RPi 4, SBC)       | `300000`–`500000`  | `low`          | comfortable headroom             |
+| x86 notebook/desktop         | `500000`–`1000000` | `low`–`medium` | plenty of CPU                    |
 
 Typical end-to-end latency: 100-300ms depending on network.
 

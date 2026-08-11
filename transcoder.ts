@@ -16,8 +16,12 @@ export async function isGStreamerAvailable(): Promise<boolean> {
   const gstVersion = await new Promise<boolean>((resolve) => {
     const proc = spawn("gst-launch-1.0", ["--version"]);
     let out = "";
-    proc.stdout?.on("data", (d: Buffer) => { out += d; });
-    proc.stderr?.on("data", (d: Buffer) => { out += d; });
+    proc.stdout?.on("data", (d: Buffer) => {
+      out += d;
+    });
+    proc.stderr?.on("data", (d: Buffer) => {
+      out += d;
+    });
     proc.on("close", (code) => {
       if (code === 0) logger.info(`GStreamer available: ${out.split("\n")[0]}`);
       resolve(code === 0);
@@ -29,10 +33,15 @@ export async function isGStreamerAvailable(): Promise<boolean> {
 
   const hasPlugin = await new Promise<boolean>((resolve) => {
     const proc = spawn("gst-launch-1.0", [
-      "-q", "videotestsrc", "num-buffers=1",
-      "!", "videoconvert",
-      "!", "openh264enc",
-      "!", "fakesink",
+      "-q",
+      "videotestsrc",
+      "num-buffers=1",
+      "!",
+      "videoconvert",
+      "!",
+      "openh264enc",
+      "!",
+      "fakesink",
     ]);
     proc.on("close", (code) => resolve(code === 0));
     proc.on("error", () => resolve(false));
@@ -90,22 +99,30 @@ export function createTranscoder(): Transcoder {
     const port = udpSocket.address().port;
 
     const args = [
-      "fdsrc", "fd=0",
-      "!", "jpegdec",
-      "!", "videoconvert",
-      "!", "openh264enc",
-        "complexity=low",
-        "bitrate=300000",
-        "gop-size=15",
-        "usage-type=camera",
-      "!", "video/x-h264,stream-format=byte-stream,profile=constrained-baseline",
-      "!", "h264parse",
-      "!", "rtph264pay",
-        "config-interval=-1",
-        "pt=96",
-      "!", "udpsink",
-        "host=127.0.0.1",
-        `port=${port}`,
+      "fdsrc",
+      "fd=0",
+      "!",
+      "jpegdec",
+      "!",
+      "videoconvert",
+      "!",
+      "openh264enc",
+      "complexity=low",
+      "bitrate=300000",
+      "gop-size=15",
+      "usage-type=camera",
+      "!",
+      "video/x-h264,stream-format=byte-stream,profile=constrained-baseline",
+      "!",
+      "h264parse",
+      "!",
+      "rtph264pay",
+      "config-interval=-1",
+      "pt=96",
+      "!",
+      "udpsink",
+      "host=127.0.0.1",
+      `port=${port}`,
     ];
 
     gstProcess = spawn("gst-launch-1.0", args, { stdio: ["pipe", "ignore", "pipe"] });
@@ -165,7 +182,9 @@ export function createTranscoder(): Transcoder {
         gstProcess.kill("SIGTERM");
         gstProcess = null;
       }
-      try { udpSocket.close(); } catch (_) {}
+      try {
+        udpSocket.close();
+      } catch (_) {}
     },
     getSps: () => sps,
     getPps: () => pps,

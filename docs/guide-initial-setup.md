@@ -57,37 +57,37 @@ node dist/bin.cjs frame --discovery_ip 192.168.1.255 --out snapshot.jpg
 
 ### http_server
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--port` | `5000` | HTTP port |
+| Option           | Default         | Description                                |
+| ---------------- | --------------- | ------------------------------------------ |
+| `--port`         | `5000`          | HTTP port                                  |
 | `--discovery_ip` | `192.168.1.255` | Camera discovery IP (broadcast or unicast) |
-| `--config_file` | -- | Path to YAML config |
-| `--log_level` | `info` | `debug`, `info`, `warning` |
-| `--audio` | `false` | Enable audio streaming |
+| `--config_file`  | --              | Path to YAML config                        |
+| `--log_level`    | `info`          | `debug`, `info`, `warning`                 |
+| `--audio`        | `false`         | Enable audio streaming                     |
 
 ### rtsp_server
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--port` | `8554` | RTSP port |
-| `--discovery_ip` | `192.168.1.255` | Camera discovery IP |
-| `--config_file` | -- | Path to YAML config |
-| `--log_level` | `info` | `debug`, `info`, `warning` |
+| Option           | Default         | Description                |
+| ---------------- | --------------- | -------------------------- |
+| `--port`         | `8554`          | RTSP port                  |
+| `--discovery_ip` | `192.168.1.255` | Camera discovery IP        |
+| `--config_file`  | --              | Path to YAML config        |
+| `--log_level`    | `info`          | `debug`, `info`, `warning` |
 
 ### pair
 
-| Option | Required | Description |
-|--------|----------|-------------|
-| `--ssid` | Yes | WiFi network name |
-| `--password` | Yes | WiFi password |
-| `--discovery_ip` | No | Camera discovery IP |
+| Option           | Required | Description         |
+| ---------------- | -------- | ------------------- |
+| `--ssid`         | Yes      | WiFi network name   |
+| `--password`     | Yes      | WiFi password       |
+| `--discovery_ip` | No       | Camera discovery IP |
 
 ### frame
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--out` | -- | Output file path (required) |
-| `--discovery_ip` | `192.168.1.255` | Camera discovery IP |
+| Option           | Default         | Description                 |
+| ---------------- | --------------- | --------------------------- |
+| `--out`          | --              | Output file path (required) |
+| `--discovery_ip` | `192.168.1.255` | Camera discovery IP         |
 
 ## Config file
 

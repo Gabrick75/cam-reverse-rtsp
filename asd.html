@@ -1,244 +1,543 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="shortcut icon" href="/favicon.ico">
-<title>${name} - Cam Reverse RTSP</title>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg-primary:#0d1117;--bg-secondary:#161b22;--bg-card:#1c2128;--border:#30363d;--text-primary:#e6edf3;--text-secondary:#8b949e;--accent:#58a6ff;--accent-hover:#79c0ff;--success:#3fb950;--danger:#f85149;--warning:#d29922;--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2)}
-[data-theme="light"]{--bg-primary:#ffffff;--bg-secondary:#f6f8fa;--bg-card:#ffffff;--border:#d0d7de;--text-primary:#1f2328;--text-secondary:#656d76;--accent:#0969da;--accent-hover:#0550ae;--success:#1a7f37;--danger:#cf222e;--warning:#9a6700;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06)}
-html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;display:flex;flex-direction:column}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <title>${name} - Cam Reverse RTSP</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg-primary: #0d1117;
+        --bg-secondary: #161b22;
+        --bg-card: #1c2128;
+        --border: #30363d;
+        --text-primary: #e6edf3;
+        --text-secondary: #8b949e;
+        --accent: #58a6ff;
+        --accent-hover: #79c0ff;
+        --success: #3fb950;
+        --danger: #f85149;
+        --warning: #d29922;
+        --radius: 8px;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      [data-theme="light"] {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f6f8fa;
+        --bg-card: #ffffff;
+        --border: #d0d7de;
+        --text-primary: #1f2328;
+        --text-secondary: #656d76;
+        --accent: #0969da;
+        --accent-hover: #0550ae;
+        --success: #1a7f37;
+        --danger: #cf222e;
+        --warning: #9a6700;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
 
-/* Header */
-header{background:var(--bg-secondary);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
-.header-left{display:flex;align-items:center;gap:1rem}
-header h1{font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
-.status-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:500;padding:.2rem .6rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
-.status-badge.online{background:rgba(63,185,80,.15);color:var(--success);border:1px solid rgba(63,185,80,.3)}
-.status-badge::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.header-right{display:flex;align-items:center;gap:.5rem}
-.theme-toggle{font-family:inherit;font-size:1rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);cursor:pointer;padding:.3rem .5rem;line-height:1;transition:all .2s ease}
-.theme-toggle:hover{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.1)}
-.github-link,.back-link{color:var(--text-secondary);font-size:.875rem;font-weight:500;padding:.4rem .75rem;border-radius:6px;transition:all .2s ease}
-.github-link:hover,.back-link:hover{color:var(--accent);background:rgba(88,166,255,.1);text-decoration:none}
+      /* Header */
+      header {
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      header h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .status-badge.online {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--success);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
+      .status-badge::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .theme-toggle {
+        font-family: inherit;
+        font-size: 1rem;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.3rem 0.5rem;
+        line-height: 1;
+        transition: all 0.2s ease;
+      }
+      .theme-toggle:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: rgba(88, 166, 255, 0.1);
+      }
+      .github-link,
+      .back-link {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+      }
+      .github-link:hover,
+      .back-link:hover {
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.1);
+        text-decoration: none;
+      }
 
-/* Main */
-main{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:2rem 1.5rem}
-.camera-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);width:100%;max-width:960px;overflow:hidden}
-.camera-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
-.camera-header-left{display:flex;align-items:center;gap:.75rem}
-.camera-header h2{font-size:1.125rem;font-weight:600}
-.cam-id{font-size:.75rem;color:var(--text-secondary);font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;background:rgba(139,148,158,.1);padding:.2rem .5rem;border-radius:4px}
+      /* Main */
+      main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2rem 1.5rem;
+      }
+      .camera-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        width: 100%;
+        max-width: 960px;
+        overflow: hidden;
+      }
+      .camera-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .camera-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .camera-header h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+      }
+      .cam-id {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        background: rgba(139, 148, 158, 0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+      }
 
-/* Stream stats */
-.stream-stats{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
-.stat{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--text-secondary)}
-.stat-label{font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:.65rem}
-.stat-value{font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-primary)}
-.stream-status{font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:10px}
-.stream-status.live{color:var(--success);background:rgba(63,185,80,.12)}
-.stream-status.stalled{color:var(--danger);background:rgba(248,81,73,.12)}
-.stream-status.connecting{color:var(--text-secondary);background:rgba(139,148,158,.1)}
+      /* Stream stats */
+      .stream-stats {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+      .stat-label {
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 0.65rem;
+      }
+      .stat-value {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--text-primary);
+      }
+      .stream-status {
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.15rem 0.5rem;
+        border-radius: 10px;
+      }
+      .stream-status.live {
+        color: var(--success);
+        background: rgba(63, 185, 80, 0.12);
+      }
+      .stream-status.stalled {
+        color: var(--danger);
+        background: rgba(248, 81, 73, 0.12);
+      }
+      .stream-status.connecting {
+        color: var(--text-secondary);
+        background: rgba(139, 148, 158, 0.1);
+      }
 
-/* Stream */
-.stream-container{position:relative;background:#000;line-height:0;min-height:200px}
-.stream-container img{display:block;width:100%;height:auto;max-height:80vh;object-fit:contain}
+      /* Stream */
+      .stream-container {
+        position: relative;
+        background: #000;
+        line-height: 0;
+        min-height: 200px;
+      }
+      .stream-container img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 80vh;
+        object-fit: contain;
+      }
 
-/* Controls */
-.controls{padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.5rem}
-.controls button{font-family:inherit;font-size:.875rem;font-weight:500;padding:.5rem 1rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .2s ease;background:#21262d;color:var(--text-primary);display:inline-flex;align-items:center;gap:.4rem}
-[data-theme="light"] .controls button{background:#f6f8fa}
-.controls button:hover:not(:disabled){background:#30363d;border-color:var(--text-secondary)}
-[data-theme="light"] .controls button:hover:not(:disabled){background:#eaeef2}
-.controls button:active:not(:disabled){transform:scale(.97)}
-.controls button:disabled{opacity:.5;cursor:not-allowed}
-#audio.on{border-color:var(--success);color:var(--success)}
-#audio.on:hover{background:rgba(63,185,80,.15)}
-.btn-rotate:hover:not(:disabled){border-color:var(--warning);color:var(--warning);background:rgba(210,153,34,.1)}
-.btn-mirror:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.1)}
+      /* Controls */
+      .controls {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .controls button {
+        font-family: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #21262d;
+        color: var(--text-primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      [data-theme="light"] .controls button {
+        background: #f6f8fa;
+      }
+      .controls button:hover:not(:disabled) {
+        background: #30363d;
+        border-color: var(--text-secondary);
+      }
+      [data-theme="light"] .controls button:hover:not(:disabled) {
+        background: #eaeef2;
+      }
+      .controls button:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+      .controls button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      #audio.on {
+        border-color: var(--success);
+        color: var(--success);
+      }
+      #audio.on:hover {
+        background: rgba(63, 185, 80, 0.15);
+      }
+      .btn-rotate:hover:not(:disabled) {
+        border-color: var(--warning);
+        color: var(--warning);
+        background: rgba(210, 153, 34, 0.1);
+      }
+      .btn-mirror:hover:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.1);
+      }
 
-/* Footer */
-footer{text-align:center;padding:1rem 1.5rem;font-size:.75rem;color:var(--text-secondary);border-top:1px solid var(--border);background:var(--bg-secondary)}
-footer a:hover{text-decoration:underline}
+      /* Footer */
+      footer {
+        text-align: center;
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border);
+        background: var(--bg-secondary);
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
 
-/* Responsive */
-@media(max-width:768px){header{padding:.75rem 1rem}header h1{font-size:1rem}main{padding:1rem .75rem}.camera-header{flex-direction:column;align-items:flex-start;gap:.5rem}.stream-stats{width:100%}.controls{flex-direction:column}.controls button{width:100%;justify-content:center}}
-@media(max-width:480px){.header-left{flex-wrap:wrap}.status-badge{font-size:.65rem}}
-</style>
-</head>
-<body>
-<header>
-  <div class="header-left">
-    <h1>Cam Reverse RTSP</h1>
-    <span class="status-badge online">Online</span>
-  </div>
-  <div class="header-right">
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#x263E;</button>
-    <a href="/" class="back-link">All Cameras</a>
-    <a href="https://github.com/Gabrick75/cam-reverse-rtsp" class="github-link" target="_blank" rel="noopener">GitHub</a>
-  </div>
-</header>
-<main>
-  <div class="camera-card">
-    <div class="camera-header">
-      <div class="camera-header-left">
-        <h2>${name}</h2>
-        <span class="cam-id">${id}</span>
+      /* Responsive */
+      @media (max-width: 768px) {
+        header {
+          padding: 0.75rem 1rem;
+        }
+        header h1 {
+          font-size: 1rem;
+        }
+        main {
+          padding: 1rem 0.75rem;
+        }
+        .camera-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .stream-stats {
+          width: 100%;
+        }
+        .controls {
+          flex-direction: column;
+        }
+        .controls button {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+      @media (max-width: 480px) {
+        .header-left {
+          flex-wrap: wrap;
+        }
+        .status-badge {
+          font-size: 0.65rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-left">
+        <h1>Cam Reverse RTSP</h1>
+        <span class="status-badge online">Online</span>
       </div>
-      <div class="stream-stats">
-        <span class="stat"><span class="stat-label">FPS</span><span id="fps" class="stat-value">--</span></span>
-        <span class="stat"><span class="stat-label">Signal</span><span id="signal" class="stat-value">--</span></span>
-        <span id="streamStatus" class="stream-status connecting">Connecting</span>
+      <div class="header-right">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#x263E;</button>
+        <a href="/" class="back-link">All Cameras</a>
+        <a href="https://github.com/DavidVentura/cam-reverse" class="github-link" target="_blank" rel="noopener"
+          >GitHub</a
+        >
       </div>
-    </div>
-    <div class="stream-container">
-      <img id="streamImg" src="/camera/${id}" alt="Live feed from ${name}">
-    </div>
-    <div class="controls">
-      <button onclick="toggle_audio()" id="audio" disabled>Audio: disabled</button>
-      <button onclick="fetch('/rotate/${id}')" class="btn-rotate">Rotate 90&deg;</button>
-      <button onclick="fetch('/mirror/${id}')" class="btn-mirror">Mirror</button>
-    </div>
-  </div>
-</main>
-<footer>
-  <a href="https://github.com/Gabrick75/cam-reverse-rtsp">Cam Reverse RTSP</a> &middot; Open source camera streaming
-</footer>
-<script>
-(function() {
-  var saved = localStorage.getItem('theme');
-  if (saved === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    var btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = '\u2600';
-  }
-})();
-function toggleTheme() {
-  var html = document.documentElement;
-  var isDark = html.getAttribute('data-theme') !== 'light';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  localStorage.setItem('theme', isDark ? 'light' : 'dark');
-  var btn = document.querySelector('.theme-toggle');
-  if (btn) btn.textContent = isDark ? '\u2600' : '\u263E';
-}
+    </header>
+    <main>
+      <div class="camera-card">
+        <div class="camera-header">
+          <div class="camera-header-left">
+            <h2>${name}</h2>
+            <span class="cam-id">${id}</span>
+          </div>
+          <div class="stream-stats">
+            <span class="stat"><span class="stat-label">FPS</span><span id="fps" class="stat-value">--</span></span>
+            <span class="stat"
+              ><span class="stat-label">Signal</span><span id="signal" class="stat-value">--</span></span
+            >
+            <span id="streamStatus" class="stream-status connecting">Connecting</span>
+          </div>
+        </div>
+        <div class="stream-container">
+          <img id="streamImg" src="/camera/${id}" alt="Live feed from ${name}" />
+        </div>
+        <div class="controls">
+          <button onclick="toggle_audio()" id="audio" disabled>Audio: disabled</button>
+          <button onclick="fetch('/rotate/${id}')" class="btn-rotate">Rotate 90&deg;</button>
+          <button onclick="fetch('/mirror/${id}')" class="btn-mirror">Mirror</button>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <a href="https://github.com/DavidVentura/cam-reverse">Cam Reverse RTSP</a> &middot; Open source camera streaming
+    </footer>
+    <script>
+      (function() {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          var btn = document.querySelector('.theme-toggle');
+          if (btn) btn.textContent = '\u2600';
+        }
+      })();
+      function toggleTheme() {
+        var html = document.documentElement;
+        var isDark = html.getAttribute('data-theme') !== 'light';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        var btn = document.querySelector('.theme-toggle');
+        if (btn) btn.textContent = isDark ? '\u2600' : '\u263E';
+      }
 
-const alaw_to_s16_table = [
-  -5504, -5248, -6016, -5760, -4480, -4224, -4992, -4736, -7552, -7296, -8064, -7808, -6528, -6272, -7040, -6784, -2752,
-  -2624, -3008, -2880, -2240, -2112, -2496, -2368, -3776, -3648, -4032, -3904, -3264, -3136, -3520, -3392, -22016,
-  -20992, -24064, -23040, -17920, -16896, -19968, -18944, -30208, -29184, -32256, -31232, -26112, -25088, -28160,
-  -27136, -11008, -10496, -12032, -11520, -8960, -8448, -9984, -9472, -15104, -14592, -16128, -15616, -13056, -12544,
-  -14080, -13568, -344, -328, -376, -360, -280, -264, -312, -296, -472, -456, -504, -488, -408, -392, -440, -424, -88,
-  -72, -120, -104, -24, -8, -56, -40, -216, -200, -248, -232, -152, -136, -184, -168, -1376, -1312, -1504, -1440, -1120,
-  -1056, -1248, -1184, -1888, -1824, -2016, -1952, -1632, -1568, -1760, -1696, -688, -656, -752, -720, -560, -528, -624,
-  -592, -944, -912, -1008, -976, -816, -784, -880, -848, 5504, 5248, 6016, 5760, 4480, 4224, 4992, 4736, 7552, 7296,
-  8064, 7808, 6528, 6272, 7040, 6784, 2752, 2624, 3008, 2880, 2240, 2112, 2496, 2368, 3776, 3648, 4032, 3904, 3264,
-  3136, 3520, 3392, 22016, 20992, 24064, 23040, 17920, 16896, 19968, 18944, 30208, 29184, 32256, 31232, 26112, 25088,
-  28160, 27136, 11008, 10496, 12032, 11520, 8960, 8448, 9984, 9472, 15104, 14592, 16128, 15616, 13056, 12544, 14080,
-  13568, 344, 328, 376, 360, 280, 264, 312, 296, 472, 456, 504, 488, 408, 392, 440, 424, 88, 72, 120, 104, 24, 8, 56,
-  40, 216, 200, 248, 232, 152, 136, 184, 168, 1376, 1312, 1504, 1440, 1120, 1056, 1248, 1184, 1888, 1824, 2016, 1952,
-  1632, 1568, 1760, 1696, 688, 656, 752, 720, 560, 528, 624, 592, 944, 912, 1008, 976, 816, 784, 880, 848,
-];
-const alaw_to_s16 = function(a_val) { return alaw_to_s16_table[a_val]; };
-var audio_context;
-const audio_button = document.getElementById('audio');
-audio_button.disabled = !${audio};
-update_audio_button();
-function setup_audio() {
-  audio_context = new AudioContext();
-  const gain_node = audio_context.createGain();
-  const channels = 1;
-  const sample_rate = 8000;
-  const audioBuffer = audio_context.createBuffer(channels, 960, sample_rate);
-  audio_context.onstatechange = function() {
-    console.log("Audio state is now ", audio_context.state);
-    update_audio_button(audio_context.state == "running");
-  };
-  gain_node.connect(audio_context.destination);
-  audio_context.resume();
-  const evtSource = new EventSource("/audio/${id}");
-  evtSource.onopen = function(e) { console.log("evtsource open"); };
-  evtSource.onerror = function(e) { console.log("evtsource error", e); };
-  var endsAt = 0;
-  var startAt = 0;
-  evtSource.onmessage = function(e) {
-    const nowBuffering = audioBuffer.getChannelData(0);
-    const u8 = Uint8Array.from(atob(e.data), function(c) { return c.charCodeAt(0); });
-    new Int16Array(u8).map(alaw_to_s16).forEach(function(el, i) { nowBuffering[i] = el / 0x8000; });
-    const source_node = audio_context.createBufferSource();
-    source_node.buffer = audioBuffer;
-    source_node.connect(gain_node);
-    const now = Date.now();
-    if(now > endsAt) { startAt = 0; }
-    else { startAt += audioBuffer.duration; }
-    source_node.start(startAt);
-    endsAt = now + audioBuffer.duration * 1000;
-  };
-}
-function update_audio_button(on) {
-  if (${audio}) {
-    audio_button.innerText = on ? "Audio: on" : "Audio: off";
-    audio_button.className = on ? "on" : "";
-  }
-}
-function toggle_audio() {
-  if (audio_context == undefined) { setup_audio(); return; }
-  if (audio_context.state == "running") { audio_context.suspend(); return; }
-  if (audio_context.state == "suspended") { audio_context.resume(); return; }
-  console.log("Unknown audio stream status");
-}
+      const alaw_to_s16_table = [
+        -5504, -5248, -6016, -5760, -4480, -4224, -4992, -4736, -7552, -7296, -8064, -7808, -6528, -6272, -7040, -6784, -2752,
+        -2624, -3008, -2880, -2240, -2112, -2496, -2368, -3776, -3648, -4032, -3904, -3264, -3136, -3520, -3392, -22016,
+        -20992, -24064, -23040, -17920, -16896, -19968, -18944, -30208, -29184, -32256, -31232, -26112, -25088, -28160,
+        -27136, -11008, -10496, -12032, -11520, -8960, -8448, -9984, -9472, -15104, -14592, -16128, -15616, -13056, -12544,
+        -14080, -13568, -344, -328, -376, -360, -280, -264, -312, -296, -472, -456, -504, -488, -408, -392, -440, -424, -88,
+        -72, -120, -104, -24, -8, -56, -40, -216, -200, -248, -232, -152, -136, -184, -168, -1376, -1312, -1504, -1440, -1120,
+        -1056, -1248, -1184, -1888, -1824, -2016, -1952, -1632, -1568, -1760, -1696, -688, -656, -752, -720, -560, -528, -624,
+        -592, -944, -912, -1008, -976, -816, -784, -880, -848, 5504, 5248, 6016, 5760, 4480, 4224, 4992, 4736, 7552, 7296,
+        8064, 7808, 6528, 6272, 7040, 6784, 2752, 2624, 3008, 2880, 2240, 2112, 2496, 2368, 3776, 3648, 4032, 3904, 3264,
+        3136, 3520, 3392, 22016, 20992, 24064, 23040, 17920, 16896, 19968, 18944, 30208, 29184, 32256, 31232, 26112, 25088,
+        28160, 27136, 11008, 10496, 12032, 11520, 8960, 8448, 9984, 9472, 15104, 14592, 16128, 15616, 13056, 12544, 14080,
+        13568, 344, 328, 376, 360, 280, 264, 312, 296, 472, 456, 504, 488, 408, 392, 440, 424, 88, 72, 120, 104, 24, 8, 56,
+        40, 216, 200, 248, 232, 152, 136, 184, 168, 1376, 1312, 1504, 1440, 1120, 1056, 1248, 1184, 1888, 1824, 2016, 1952,
+        1632, 1568, 1760, 1696, 688, 656, 752, 720, 560, 528, 624, 592, 944, 912, 1008, 976, 816, 784, 880, 848,
+      ];
+      const alaw_to_s16 = function(a_val) { return alaw_to_s16_table[a_val]; };
+      var audio_context;
+      const audio_button = document.getElementById('audio');
+      audio_button.disabled = !${audio};
+      update_audio_button();
+      function setup_audio() {
+        audio_context = new AudioContext();
+        const gain_node = audio_context.createGain();
+        const channels = 1;
+        const sample_rate = 8000;
+        const audioBuffer = audio_context.createBuffer(channels, 960, sample_rate);
+        audio_context.onstatechange = function() {
+          console.log("Audio state is now ", audio_context.state);
+          update_audio_button(audio_context.state == "running");
+        };
+        gain_node.connect(audio_context.destination);
+        audio_context.resume();
+        const evtSource = new EventSource("/audio/${id}");
+        evtSource.onopen = function(e) { console.log("evtsource open"); };
+        evtSource.onerror = function(e) { console.log("evtsource error", e); };
+        var endsAt = 0;
+        var startAt = 0;
+        evtSource.onmessage = function(e) {
+          const nowBuffering = audioBuffer.getChannelData(0);
+          const u8 = Uint8Array.from(atob(e.data), function(c) { return c.charCodeAt(0); });
+          new Int16Array(u8).map(alaw_to_s16).forEach(function(el, i) { nowBuffering[i] = el / 0x8000; });
+          const source_node = audio_context.createBufferSource();
+          source_node.buffer = audioBuffer;
+          source_node.connect(gain_node);
+          const now = Date.now();
+          if(now > endsAt) { startAt = 0; }
+          else { startAt += audioBuffer.duration; }
+          source_node.start(startAt);
+          endsAt = now + audioBuffer.duration * 1000;
+        };
+      }
+      function update_audio_button(on) {
+        if (${audio}) {
+          audio_button.innerText = on ? "Audio: on" : "Audio: off";
+          audio_button.className = on ? "on" : "";
+        }
+      }
+      function toggle_audio() {
+        if (audio_context == undefined) { setup_audio(); return; }
+        if (audio_context.state == "running") { audio_context.suspend(); return; }
+        if (audio_context.state == "suspended") { audio_context.resume(); return; }
+        console.log("Unknown audio stream status");
+      }
 
-/* FPS and signal quality */
-(function() {
-  var img = document.getElementById('streamImg');
-  var fpsEl = document.getElementById('fps');
-  var signalEl = document.getElementById('signal');
-  var statusEl = document.getElementById('streamStatus');
-  var frameTimes = [];
-  var MAX_FRAMES = 30;
-  var lastFrameTime = Date.now();
-  var checking = false;
+      /* FPS and signal quality */
+      (function() {
+        var img = document.getElementById('streamImg');
+        var fpsEl = document.getElementById('fps');
+        var signalEl = document.getElementById('signal');
+        var statusEl = document.getElementById('streamStatus');
+        var frameTimes = [];
+        var MAX_FRAMES = 30;
+        var lastFrameTime = Date.now();
+        var checking = false;
 
-  function updateStats() {
-    var now = Date.now();
-    frameTimes.push(now);
-    if (frameTimes.length > MAX_FRAMES) { frameTimes.shift(); }
-    lastFrameTime = now;
-    if (frameTimes.length > 1) {
-      var elapsed = (now - frameTimes[0]) / 1000;
-      var fps = (frameTimes.length - 1) / elapsed;
-      fpsEl.textContent = fps.toFixed(1);
-      if (fps >= 20) { signalEl.textContent = 'Good'; signalEl.style.color = ''; signalEl.style.removeProperty ? signalEl.style.removeProperty('color') : (signalEl.style.color = 'var(--success)'); }
-      else if (fps >= 10) { signalEl.textContent = 'Fair'; signalEl.style.color = ''; signalEl.style.removeProperty ? signalEl.style.removeProperty('color') : (signalEl.style.color = 'var(--warning)'); }
-      else { signalEl.textContent = 'Poor'; signalEl.style.color = ''; signalEl.style.removeProperty ? signalEl.style.removeProperty('color') : (signalEl.style.color = 'var(--danger)'); }
-    }
-    statusEl.textContent = 'Live';
-    statusEl.className = 'stream-status live';
-  }
+        function updateStats() {
+          var now = Date.now();
+          frameTimes.push(now);
+          if (frameTimes.length > MAX_FRAMES) { frameTimes.shift(); }
+          lastFrameTime = now;
+          if (frameTimes.length > 1) {
+            var elapsed = (now - frameTimes[0]) / 1000;
+            var fps = (frameTimes.length - 1) / elapsed;
+            fpsEl.textContent = fps.toFixed(1);
+            if (fps >= 20) { signalEl.textContent = 'Good'; signalEl.style.color = ''; signalEl.style.removeProperty ? signalEl.style.removeProperty('color') : (signalEl.style.color = 'var(--success)'); }
+            else if (fps >= 10) { signalEl.textContent = 'Fair'; signalEl.style.color = ''; signalEl.style.removeProperty ? signalEl.style.removeProperty('color') : (signalEl.style.color = 'var(--warning)'); }
+            else { signalEl.textContent = 'Poor'; signalEl.style.color = ''; signalEl.style.removeProperty ? signalEl.style.removeProperty('color') : (signalEl.style.color = 'var(--danger)'); }
+          }
+          statusEl.textContent = 'Live';
+          statusEl.className = 'stream-status live';
+        }
 
-  if (img) {
-    img.addEventListener('load', updateStats);
-    img.addEventListener('error', function() {
-      statusEl.textContent = 'Error';
-      statusEl.className = 'stream-status stalled';
-      fpsEl.textContent = '--';
-      signalEl.textContent = '--';
-    });
-  }
+        if (img) {
+          img.addEventListener('load', updateStats);
+          img.addEventListener('error', function() {
+            statusEl.textContent = 'Error';
+            statusEl.className = 'stream-status stalled';
+            fpsEl.textContent = '--';
+            signalEl.textContent = '--';
+          });
+        }
 
-  setInterval(function() {
-    if (Date.now() - lastFrameTime > 3000) {
-      statusEl.textContent = 'Stalled';
-      statusEl.className = 'stream-status stalled';
-      if (!checking) { fpsEl.textContent = '--'; signalEl.textContent = '--'; }
-    }
-  }, 1000);
-})();
-</script>
-</body>
+        setInterval(function() {
+          if (Date.now() - lastFrameTime > 3000) {
+            statusEl.textContent = 'Stalled';
+            statusEl.className = 'stream-status stalled';
+            if (!checking) { fpsEl.textContent = '--'; signalEl.textContent = '--'; }
+          }
+        }, 1000);
+      })();
+    </script>
+  </body>
 </html>

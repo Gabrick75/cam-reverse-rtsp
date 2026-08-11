@@ -23,6 +23,10 @@ Tested with [X5](https://www.aliexpress.com/item/1005006287788979.html), [A9](ht
 - WiFi camera configuration (pairing)
 - Single frame capture
 
+## Known Limitations
+
+- **RTSP multi-camera:** Currently all cameras share a single RTSP endpoint (`/camera`). Each camera needs its own path (`/camera/<devId>`). Workaround: run one RTSP server instance per camera with different ports. Fix planned.
+
 ## Quick start
 
 ```bash
@@ -39,15 +43,15 @@ Connect to `rtsp://<your-ip>:8554/camera` or open `http://localhost:5000`.
 
 ## Documentation
 
-| | |
-|---|---|
-| [Architecture](docs/architecture.md) | Project structure, data flow, source files |
-| [Initial Setup](docs/guide-initial-setup.md) | Building, pairing cameras, running, config |
-| [RTSP Server](docs/rtsp.md) | RTSP/RTP streaming, H.264/JPEG modes, compatibility |
-| [HTTP Server](docs/http_server.md) | MJPEG streaming, web UI, routes |
-| [iLnkP2P Protocol](docs/protocol.md) | Reverse-engineered camera protocol |
-| [GStreamer](docs/gstreamer.md) | JPEG-to-H.264 transcoding pipeline |
-| [Reverse Engineering](docs/reversing.md) | Ghidra, Frida, Wireshark dissector |
+|                                              |                                                     |
+| -------------------------------------------- | --------------------------------------------------- |
+| [Architecture](docs/architecture.md)         | Project structure, data flow, source files          |
+| [Initial Setup](docs/guide-initial-setup.md) | Building, pairing cameras, running, config          |
+| [RTSP Server](docs/rtsp.md)                  | RTSP/RTP streaming, H.264/JPEG modes, compatibility |
+| [HTTP Server](docs/http_server.md)           | MJPEG streaming, web UI, routes                     |
+| [iLnkP2P Protocol](docs/protocol.md)         | Reverse-engineered camera protocol                  |
+| [GStreamer](docs/gstreamer.md)               | JPEG-to-H.264 transcoding pipeline                  |
+| [Reverse Engineering](docs/reversing.md)     | Ghidra, Frida, Wireshark dissector                  |
 
 ## Camera PCB
 

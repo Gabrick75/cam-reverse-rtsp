@@ -72,7 +72,9 @@ export const makeSession = (
   sock.on("message", (msg, rinfo) => handleIncoming(session, handlers, msg, rinfo));
 
   sock.on("listening", () => {
-    try { sock.setRecvBufferSize(1024 * 1024); } catch (_) {}
+    try {
+      sock.setRecvBufferSize(1024 * 1024);
+    } catch (_) {}
     const buf = makeP2pRdy(dev);
     session.send(buf);
     session.started = true;

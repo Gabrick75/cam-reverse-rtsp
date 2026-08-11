@@ -81,7 +81,10 @@ yargs(hideBin(process.argv))
       if (majorVersion < 16) {
         logger.error(`Node version ${majorVersion} is not supported, may malfunction`);
       }
-      serveRtsp(argv.port).catch((err) => { logger.error(`RTSP server error: ${err}`); process.exit(1); });
+      serveRtsp(argv.port).catch((err) => {
+        logger.error(`RTSP server error: ${err}`);
+        process.exit(1);
+      });
     },
   )
   .command(

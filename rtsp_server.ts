@@ -72,9 +72,15 @@ function extractQTables(jpeg: Buffer): Buffer | null {
   const tables: Buffer[] = [];
   let i = 0;
   while (i < jpeg.length - 4) {
-    if (jpeg[i] !== 0xff) { i++; continue; }
+    if (jpeg[i] !== 0xff) {
+      i++;
+      continue;
+    }
     const marker = jpeg[i + 1];
-    if (marker === 0xd8) { i += 2; continue; }
+    if (marker === 0xd8) {
+      i += 2;
+      continue;
+    }
     if (marker === 0xd9 || marker === 0xda) break;
     const segLen = jpeg.readUInt16BE(i + 2);
     if (marker === 0xdb) {
@@ -114,16 +120,19 @@ function buildRtpPacket(
   // RTP fixed header (12 bytes)
   pkt[off++] = 0x80;
   pkt[off++] = (isLast ? 0x80 : 0x00) | 26; // M bit + PT=26 (JPEG)
-  pkt.writeUInt16BE(seqNum & 0xffff, off); off += 2;
-  pkt.writeUInt32BE(timestamp >>> 0, off); off += 4;
-  pkt.writeUInt32BE(ssrc >>> 0, off); off += 4;
+  pkt.writeUInt16BE(seqNum & 0xffff, off);
+  off += 2;
+  pkt.writeUInt32BE(timestamp >>> 0, off);
+  off += 4;
+  pkt.writeUInt32BE(ssrc >>> 0, off);
+  off += 4;
 
   // JPEG RTP header (8 bytes, RFC 2435 §3.1)
   pkt[off++] = 0;
   pkt[off++] = (fragmentOffset >> 16) & 0xff;
   pkt[off++] = (fragmentOffset >> 8) & 0xff;
   pkt[off++] = fragmentOffset & 0xff;
-  pkt[off++] = 1;  // type = YUV 4:2:2
+  pkt[off++] = 1; // type = YUV 4:2:2
   pkt[off++] = qTable ? 255 : 10;
   pkt[off++] = Math.min(255, Math.floor(width / 8));
   pkt[off++] = Math.min(255, Math.floor(height / 8));
@@ -154,8 +163,8 @@ function buildRtcpSr(ssrc: number, rtpTimestamp: number, packetCount: number, oc
   const ntpFrac = Math.floor((now % 1) * 0x100000000);
 
   const pkt = Buffer.alloc(28);
-  pkt[0] = 0x80;         // V=2, P=0, RC=0
-  pkt[1] = 200;          // PT = SR (200)
+  pkt[0] = 0x80; // V=2, P=0, RC=0
+  pkt[1] = 200; // PT = SR (200)
   pkt.writeUInt16BE(6, 2); // Length = 6 (28 bytes / 4 - 1)
   pkt.writeUInt32BE(ssrc >>> 0, 4);
   pkt.writeUInt32BE(ntpSec >>> 0, 8);
@@ -209,9 +218,16 @@ function sendFrameOverTcp(sess: RtspSession, jpeg: Buffer): void {
     const isLast = fragmentOffset + chunkSize >= payload.length;
 
     const rtp = buildRtpPacket(
-      chunk, fragmentOffset, isLast, isFirst,
-      sess.seqNum, sess.timestamp, sess.ssrc,
-      width, height, isFirst ? qTable : null,
+      chunk,
+      fragmentOffset,
+      isLast,
+      isFirst,
+      sess.seqNum,
+      sess.timestamp,
+      sess.ssrc,
+      width,
+      height,
+      isFirst ? qTable : null,
     );
 
     try {
@@ -280,7 +296,7 @@ export const serveRtsp = async (port: number) => {
     ].join("\r\n");
   };
 
-  const buildSdp = (): string => useH264 ? buildH264Sdp() : buildJpegSdp();
+  const buildSdp = (): string => (useH264 ? buildH264Sdp() : buildJpegSdp());
 
   const parseHeaders = (raw: string): Record<string, string> => {
     const headers: Record<string, string> = {};
@@ -321,9 +337,7 @@ export const serveRtsp = async (port: number) => {
         switch (method) {
           case "OPTIONS":
             socket.write(
-              `RTSP/1.0 200 OK\r\n` +
-              `CSeq: ${cseq}\r\n` +
-              `Public: OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN\r\n\r\n`,
+              `RTSP/1.0 200 OK\r\n` + `CSeq: ${cseq}\r\n` + `Public: OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN\r\n\r\n`,
             );
             break;
 
@@ -331,11 +345,11 @@ export const serveRtsp = async (port: number) => {
             const sdp = buildSdp();
             socket.write(
               `RTSP/1.0 200 OK\r\n` +
-              `CSeq: ${cseq}\r\n` +
-              `Content-Type: application/sdp\r\n` +
-              `Content-Base: rtsp://${localIp}:${port}/camera/\r\n` +
-              `Content-Length: ${Buffer.byteLength(sdp, "utf8")}\r\n\r\n` +
-              sdp,
+                `CSeq: ${cseq}\r\n` +
+                `Content-Type: application/sdp\r\n` +
+                `Content-Base: rtsp://${localIp}:${port}/camera/\r\n` +
+                `Content-Length: ${Buffer.byteLength(sdp, "utf8")}\r\n\r\n` +
+                sdp,
             );
             break;
           }
@@ -346,17 +360,16 @@ export const serveRtsp = async (port: number) => {
             const portMatch = transport.match(/client_port=(\d+)-(\d+)/);
             const useUdp = !chanMatch && !!portMatch;
 
-            const rtpChan  = chanMatch ? parseInt(chanMatch[1]) : 0;
+            const rtpChan = chanMatch ? parseInt(chanMatch[1]) : 0;
             const rtcpChan = chanMatch ? parseInt(chanMatch[2]) : 1;
-            const clientRtpPort  = portMatch ? parseInt(portMatch[1]) : 0;
+            const clientRtpPort = portMatch ? parseInt(portMatch[1]) : 0;
             const clientRtcpPort = portMatch ? parseInt(portMatch[2]) : 0;
 
             // Reuse existing session for this socket if it exists (NVR may
             // send multiple SETUP for different tracks on same connection)
             const existingSid = headers["session"]?.split(";")[0].trim();
-            const sessionId = existingSid && rtspSessions.has(existingSid)
-              ? existingSid
-              : Math.random().toString(36).slice(2, 12);
+            const sessionId =
+              existingSid && rtspSessions.has(existingSid) ? existingSid : Math.random().toString(36).slice(2, 12);
             activeSessId = sessionId;
 
             // For UDP: create a bound UDP socket
@@ -373,7 +386,9 @@ export const serveRtsp = async (port: number) => {
                   resolve();
                 });
               });
-              logger.info(`UDP transport: server port ${serverRtpPort}, client ${clientIp}:${clientRtpPort}-${clientRtcpPort}`);
+              logger.info(
+                `UDP transport: server port ${serverRtpPort}, client ${clientIp}:${clientRtpPort}-${clientRtcpPort}`,
+              );
             }
 
             rtspSessions.set(sessionId, {
@@ -399,16 +414,16 @@ export const serveRtsp = async (port: number) => {
             if (useUdp) {
               socket.write(
                 `RTSP/1.0 200 OK\r\n` +
-                `CSeq: ${cseq}\r\n` +
-                `Transport: RTP/AVP/UDP;unicast;client_port=${clientRtpPort}-${clientRtcpPort};server_port=${serverRtpPort}-${serverRtpPort + 1}\r\n` +
-                `Session: ${sessionId};timeout=60\r\n\r\n`,
+                  `CSeq: ${cseq}\r\n` +
+                  `Transport: RTP/AVP/UDP;unicast;client_port=${clientRtpPort}-${clientRtcpPort};server_port=${serverRtpPort}-${serverRtpPort + 1}\r\n` +
+                  `Session: ${sessionId};timeout=60\r\n\r\n`,
               );
             } else {
               socket.write(
                 `RTSP/1.0 200 OK\r\n` +
-                `CSeq: ${cseq}\r\n` +
-                `Transport: RTP/AVP/TCP;unicast;interleaved=${rtpChan}-${rtcpChan}\r\n` +
-                `Session: ${sessionId};timeout=60\r\n\r\n`,
+                  `CSeq: ${cseq}\r\n` +
+                  `Transport: RTP/AVP/TCP;unicast;interleaved=${rtpChan}-${rtcpChan}\r\n` +
+                  `Session: ${sessionId};timeout=60\r\n\r\n`,
               );
             }
             break;
@@ -416,7 +431,7 @@ export const serveRtsp = async (port: number) => {
 
           case "PLAY": {
             // Session header may include timeout suffix e.g. "g76g2gwwod;timeout=60"
-            const sid = (headers["session"]?.split(";")[0].trim()) ?? activeSessId ?? "";
+            const sid = headers["session"]?.split(";")[0].trim() ?? activeSessId ?? "";
             const sess = rtspSessions.get(sid);
             if (sess) {
               sess.playing = true;
@@ -427,10 +442,7 @@ export const serveRtsp = async (port: number) => {
               logger.debug(`RTSP PLAY: session ${sid} not found, known: ${[...rtspSessions.keys()].join(",")}`);
             }
             socket.write(
-              `RTSP/1.0 200 OK\r\n` +
-              `CSeq: ${cseq}\r\n` +
-              `Session: ${sid}\r\n` +
-              `Range: npt=0.000-\r\n\r\n`,
+              `RTSP/1.0 200 OK\r\n` + `CSeq: ${cseq}\r\n` + `Session: ${sid}\r\n` + `Range: npt=0.000-\r\n\r\n`,
             );
             break;
           }
@@ -438,36 +450,29 @@ export const serveRtsp = async (port: number) => {
           case "GET_PARAMETER":
           case "SET_PARAMETER": {
             // LIVE555 sends GET_PARAMETER as keepalive — must respond 200
-            const sid = (headers["session"]?.split(";")[0].trim()) ?? activeSessId ?? "";
-            socket.write(
-              `RTSP/1.0 200 OK\r\n` +
-              `CSeq: ${cseq}\r\n` +
-              `Session: ${sid}\r\n\r\n`,
-            );
+            const sid = headers["session"]?.split(";")[0].trim() ?? activeSessId ?? "";
+            socket.write(`RTSP/1.0 200 OK\r\n` + `CSeq: ${cseq}\r\n` + `Session: ${sid}\r\n\r\n`);
             break;
           }
 
           case "TEARDOWN": {
-            const sid = (headers["session"]?.split(";")[0].trim()) ?? activeSessId ?? "";
+            const sid = headers["session"]?.split(";")[0].trim() ?? activeSessId ?? "";
             const torn = rtspSessions.get(sid);
             if (torn?.rtcpTimer) clearInterval(torn.rtcpTimer);
-            if (torn?.udpSocket) { try { torn.udpSocket.close(); } catch (_) {} }
+            if (torn?.udpSocket) {
+              try {
+                torn.udpSocket.close();
+              } catch (_) {}
+            }
             rtspSessions.delete(sid);
             logger.info(`RTSP TEARDOWN from ${clientIp}`);
-            socket.write(
-              `RTSP/1.0 200 OK\r\n` +
-              `CSeq: ${cseq}\r\n` +
-              `Session: ${sid}\r\n\r\n`,
-            );
+            socket.write(`RTSP/1.0 200 OK\r\n` + `CSeq: ${cseq}\r\n` + `Session: ${sid}\r\n\r\n`);
             socket.destroy();
             break;
           }
 
           default:
-            socket.write(
-              `RTSP/1.0 501 Not Implemented\r\n` +
-              `CSeq: ${cseq}\r\n\r\n`,
-            );
+            socket.write(`RTSP/1.0 501 Not Implemented\r\n` + `CSeq: ${cseq}\r\n\r\n`);
         }
       }
 
@@ -478,7 +483,11 @@ export const serveRtsp = async (port: number) => {
       if (activeSessId) {
         const closed = rtspSessions.get(activeSessId);
         if (closed?.rtcpTimer) clearInterval(closed.rtcpTimer);
-        if (closed?.udpSocket) { try { closed.udpSocket.close(); } catch (_) {} }
+        if (closed?.udpSocket) {
+          try {
+            closed.udpSocket.close();
+          } catch (_) {}
+        }
         rtspSessions.delete(activeSessId);
         logger.info(`RTSP client ${clientIp} disconnected`);
       }
@@ -522,7 +531,9 @@ export const serveRtsp = async (port: number) => {
 
     logger.info(`Discovered camera ${dev.devId} at ${rinfo.address}`);
     config.cameras[dev.devId] = {
-      rotate: 0, mirror: false, audio: false,
+      rotate: 0,
+      mirror: false,
+      audio: false,
       ...(config.cameras[dev.devId] || {}),
     };
 
